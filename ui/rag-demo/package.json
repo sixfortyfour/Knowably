@@ -14,8 +14,11 @@
     "lint:eslint": "eslint . --fix --cache"
   },
   "dependencies": {
+    "@oxlint/binding-win32-x64-msvc": "^1.66.0",
     "@rolldown/binding-win32-x64-msvc": "^1.0.2",
+    "@tailwindcss/oxide-win32-x64-msvc": "^4.3.0",
     "axios": "^1.16.1",
+    "lightningcss-win32-x64-msvc": "^1.32.0",
     "pinia": "^3.0.4",
     "vue": "^3.5.32",
     "vue-router": "^5.0.4"
