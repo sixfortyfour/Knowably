@@ -345,30 +345,30 @@ more testable and idiomatic in modern .NET.
 
 ### 9.1 Scaffold
 
-- [ ] `npm create vue@latest rag-demo` (select TS, Router, Pinia, ESLint)
-- [ ] Add Tailwind CSS
-- [ ] Add shadcn-vue
-- [ ] Add Axios
-- [ ] Configure `vite.config.ts` proxy: `/api → http://localhost:5000`
-- [ ] Create `src/api/` typed API service layer mirroring C# DTOs
+- [x] `npm create vue@latest rag-demo` (select TS, Router, Pinia, ESLint)
+- [x] Add Tailwind CSS (v4 via @tailwindcss/vite)
+- [ ] Add shadcn-vue (skipped — components hand-crafted with Tailwind)
+- [x] Add Axios
+- [x] Configure `vite.config.ts` proxy: `/api → http://localhost:5000`
+- [x] Create `src/api/` typed API service layer mirroring C# DTOs
 
 ### 9.2 Views & Components
 
-- [ ] `DocumentUploadView`
-  - [ ] `FileDropZone.vue` — drag and drop, file type validation
-  - [ ] `UploadProgressCard.vue` — shows document ID, polls status every 2s
-  - [ ] `DocumentLibraryList.vue` — lists all docs with status badges
+- [x] `DocumentUploadView`
+  - [x] `FileDropZone.vue` — drag and drop, file type validation
+  - [x] `UploadProgressCard.vue` — shows document ID, polls status every 2s
+  - [x] `DocumentLibraryList.vue` — lists all docs with status badges
     - Status colours: pending (grey), indexing (amber), indexed (green), failed (red)
-- [ ] `QuestionAnswerView`
-  - [ ] `QuestionInput.vue` — textarea + Ask button, disabled while loading
-  - [ ] `AnswerCard.vue` — displays answer, "from cache" badge, duration
-  - [ ] `SourceChunksPanel.vue` — collapsible, shows top-k chunks with similarity scores
-  - [ ] `RecentQuestionsPanel.vue` — last 5 questions from `localStorage`
+- [x] `QuestionAnswerView`
+  - [x] `QuestionInput.vue` — textarea + Ask button, disabled while loading
+  - [x] `AnswerCard.vue` — displays answer, "from cache" badge, duration
+  - [x] `SourceChunksPanel.vue` — collapsible, shows top-k chunks with similarity scores
+  - [x] `RecentQuestionsPanel.vue` — last 5 questions from `localStorage`
 
 ### 9.3 State (Pinia)
 
-- [ ] `useDocumentsStore` — document list, upload, status polling
-- [ ] `useQuestionsStore` — submit question, answer history
+- [x] `useDocumentsStore` — document list, upload, status polling
+- [x] `useQuestionsStore` — submit question, answer history
 
 ### 9.4 Routing
 
