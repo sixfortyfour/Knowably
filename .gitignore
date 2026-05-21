@@ -1,0 +1,26 @@
+# Secrets
+.env
+appsettings.*.json
+!appsettings.json
+!appsettings.Development.json
+
+# .NET build output
+bin/
+obj/
+*.user
+*.suo
+.vs/
+*.DotSettings.user
+
+# Node / UI
+node_modules/
+dist/
+.vite/
+*.local
+
+# Claude Code
+.claude/settings.local.json
+
+# OS
+.DS_Store
+Thumbs.db
