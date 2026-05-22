@@ -6,7 +6,7 @@ import { RouterLink, RouterView } from 'vue-router'
   <div class="min-h-screen bg-[#020c1b] flex flex-col">
     <nav class="bg-white border-b border-gray-200 shadow-sm">
       <div class="max-w-3xl mx-auto px-4 sm:px-6 flex items-center justify-between h-14">
-        <span class="text-base font-bold text-gray-900 tracking-tight">RagQnA</span>
+        <span class="text-base font-bold text-gray-900 tracking-tight">Knowably</span>
         <div class="flex gap-1">
           <RouterLink
             to="/upload"
@@ -21,6 +21,13 @@ import { RouterLink, RouterView } from 'vue-router'
             active-class="bg-blue-50 text-blue-700"
           >
             Ask
+          </RouterLink>
+          <RouterLink
+            to="/about"
+            class="rounded-lg px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors"
+            active-class="bg-blue-50 text-blue-700"
+          >
+            About
           </RouterLink>
         </div>
       </div>
