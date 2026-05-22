@@ -189,6 +189,10 @@ clean typed clients over `HttpClient`. This is a portfolio strength.
 - [x] Implement `QStashSignatureVerifier`
   - [x] Verify `Upstash-Signature` JWT header on `/internal/*` callbacks
   - [x] Support key rotation (current + next signing keys)
+  - [x] `ClockSkew = 5 min` to tolerate QStash retry delays and minor clock drift
+  - [x] Body hash mismatch is logged as a warning but not a hard rejection — JWT HMAC signature is the authoritative security check
+  - [x] Structured logging for each verification step to aid debugging
+  > **QStash URL note:** `QStashClient` uses absolute URLs (`https://qstash.upstash.io/v2/publish/{url}`) rather than `BaseAddress` + relative path. Setting `BaseAddress` and appending a path containing `://` causes .NET's `Uri` to drop everything before the scheme, producing an invalid URL. Never use `Uri.EscapeDataString` on the destination URL — QStash does not decode percent-encoding and rejects the request.
 - [x] Register with `IHttpClientFactory`
 
 ### 4.4 Ollama Embedding Client
@@ -246,6 +250,7 @@ more testable and idiomatic in modern .NET.
   - > **Note:** Upstash Redis has a 1MB per-value limit. If storing raw file content in Redis
     > temporarily (see Phase 3), enforce a file size limit well below this. Recommended default: `MAX_FILE_SIZE_MB=5` stored to local temp, not Redis.
 - [x] Register `AddInfrastructure()` in `Program.cs`
+- [x] Add `JsonStringEnumConverter` to controller JSON options so enum fields (e.g. `DocumentStatus`) serialise as strings (`"Indexed"`) not integers (`2`)
 
 ---
 
@@ -282,7 +287,7 @@ more testable and idiomatic in modern .NET.
   - [x] Delete temp file after text extraction
   - [x] Update Redis status → `indexing`
   - [x] Chunk text using sliding window strategy (see 6.3)
-  - [x] Embed each chunk via OpenAI embedding client
+  - [x] Embed each chunk via Ollama embedding client
   - [x] Upsert to Upstash Vector with metadata: `{ docId, chunkIndex, text, source }`
   - [x] Update Redis status → `indexed`, store `chunkCount` and `indexedAt`
   - [x] On failure: update Redis status → `failed`, store `errorMessage`
@@ -308,10 +313,10 @@ more testable and idiomatic in modern .NET.
   - [x] Hash normalised question (SHA256 → hex) → Redis cache key
   - [x] Check Redis cache → if HIT: `INCR rag:stats:hits`, return with `"cached": true`
   - [x] `INCR rag:stats:queries` and `rag:stats:misses`
-  - [x] Embed normalised question via OpenAI embedding client
+  - [x] Embed normalised question via Ollama embedding client
   - [x] Query Upstash Vector `top_k=5`
   - [x] Build RAG prompt with retrieved chunks as context
-  - [x] Call Anthropic completion client
+  - [x] Call Ollama completion client
   - [x] Cache response in Redis (`SET rag:cache:{hash}` with TTL from `CacheOptions.TtlSeconds`)
   - [x] Record per-minute stat bucket
   - [x] Return `{ answer, cached, durationMs, sourceChunks[] }`
@@ -350,7 +355,7 @@ more testable and idiomatic in modern .NET.
 - [x] Add Tailwind CSS (v4 via @tailwindcss/vite)
 - [ ] Add shadcn-vue (skipped — components hand-crafted with Tailwind)
 - [x] Add Axios
-- [x] Configure `vite.config.ts` proxy: `/api → http://localhost:5000`
+- [x] Configure `vite.config.ts` proxy: `/api → http://localhost:5146`
 - [x] Create `src/api/` typed API service layer mirroring C# DTOs
 
 ### 9.2 Views & Components
@@ -439,11 +444,11 @@ more testable and idiomatic in modern .NET.
 - [ ] `TextExtractorTests` — TXT and MD extraction returns expected content
 
 **Manual E2E checklist**
-- [ ] Upload a TXT document → poll until `indexed` → confirm chunk count in monitor
-- [ ] Ask a question → verify source chunks reference the uploaded document
-- [ ] Ask the same question again → verify `"cached": true` in response
+- [x] Upload a TXT document → poll until `indexed` → confirm chunk count in UI
+- [x] Ask a question → verify source chunks reference the uploaded document
+- [x] Ask the same question again → verify `"cached": true` in response
 - [ ] Verify cache entry visible in monitor Cache view with TTL countdown
-- [ ] Invalidate cache entry → ask same question again → verify fresh Anthropic call
+- [ ] Invalidate cache entry → ask same question again → verify fresh Ollama call
 - [ ] Verify QStash signature rejection: send a POST to `/internal/process-document` without a valid signature → expect 401
 - [ ] Upload a PDF → confirm text extraction and indexing succeed
 
@@ -485,15 +490,14 @@ QSTASH_CURRENT_SIGNING_KEY=
 QSTASH_NEXT_SIGNING_KEY=
 
 # The public URL of your API — QStash will POST to this
+# For local dev, use an ngrok tunnel: ngrok http 5146
 API_BASE_URL=https://your-api.example.com
 
-# OpenAI (embeddings)
-OPENAI_API_KEY=
-OPENAI_EMBEDDING_MODEL=text-embedding-3-small
-
-# Anthropic (completions)
-ANTHROPIC_API_KEY=
-ANTHROPIC_COMPLETION_MODEL=claude-sonnet-4-20250514
+# Ollama (embeddings + completions — runs locally, no API key needed)
+OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_EMBEDDING_MODEL=nomic-embed-text
+OLLAMA_COMPLETION_MODEL=llama3.2
+# Pull models first: ollama pull nomic-embed-text && ollama pull llama3.2
 
 # Monitor UI protection
 MONITOR_API_KEY=
@@ -515,15 +519,18 @@ CACHE_TTL_SECONDS=3600
 
 | Package                        | Purpose                                       |
 |--------------------------------|-----------------------------------------------|
-| `OpenAI`                       | Embeddings (`text-embedding-3-small`)         |
-| `Anthropic.SDK`                | Chat completions (`claude-sonnet`)            |
 | `PdfPig`                       | PDF text extraction                           |
 | `Microsoft.Extensions.Http`    | `IHttpClientFactory` + typed clients          |
 | `System.Text.Json`             | JSON serialisation                            |
+| `Microsoft.IdentityModel.Tokens` | QStash JWT signature verification           |
 | `Microsoft.AspNetCore.OpenApi` | Swagger / Scalar API docs                     |
 | `xunit`                        | Unit testing (`RagQnA.Tests`)                 |
 | `xunit.runner.visualstudio`    | Test runner integration                       |
 | `FluentAssertions`             | Readable test assertions                      |
+
+> **No external AI SDK needed.** Ollama exposes a local REST API; both `OllamaEmbeddingClient`
+> and `OllamaCompletionClient` use plain `HttpClient`. To switch to OpenAI or Anthropic, add the
+> relevant SDK and implement `IEmbeddingClient` / `ICompletionClient`.
 
 ### Vue (both apps)
 
