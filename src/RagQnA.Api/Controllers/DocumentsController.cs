@@ -110,7 +110,7 @@ public sealed class DocumentsController : ControllerBase
     [HttpGet("{id}/chunks")]
     public async Task<IActionResult> GetDocumentChunks(string id)
     {
-        var zeroVector = new float[1536];
+        var zeroVector = new float[768];
         var results = await _vector.QueryAsync(zeroVector, 100, $"docId = '{id}'");
         return Ok(results);
     }

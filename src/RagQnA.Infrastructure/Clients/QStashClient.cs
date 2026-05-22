@@ -18,17 +18,18 @@ public sealed class QStashClient : IQStashClient
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
     };
 
+    private const string QStashBase = "https://qstash.upstash.io/v2";
+
     public QStashClient(HttpClient http, IOptions<QStashOptions> options)
     {
         _http = http;
-        _http.BaseAddress = new Uri("https://qstash.upstash.io/v2/");
         _http.DefaultRequestHeaders.Authorization =
             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", options.Value.Token);
     }
 
     public async Task<string> PublishAsync(string destinationUrl, object body, QStashPublishOptions? options = null)
     {
-        var request = new HttpRequestMessage(HttpMethod.Post, $"publish/{Uri.EscapeDataString(destinationUrl)}")
+        var request = new HttpRequestMessage(HttpMethod.Post, $"{QStashBase}/publish/{destinationUrl}")
         {
             Content = JsonContent.Create(body, options: JsonOptions)
         };
@@ -52,7 +53,7 @@ public sealed class QStashClient : IQStashClient
 
     public async Task<QStashMessage> GetMessageAsync(string messageId)
     {
-        var response = await _http.GetAsync($"messages/{messageId}");
+        var response = await _http.GetAsync($"{QStashBase}/messages/{messageId}");
         var body = await response.Content.ReadAsStringAsync();
 
         if (!response.IsSuccessStatusCode)
@@ -66,7 +67,7 @@ public sealed class QStashClient : IQStashClient
 
     public async Task<IEnumerable<QStashMessage>> ListMessagesAsync()
     {
-        var response = await _http.GetAsync("messages");
+        var response = await _http.GetAsync($"{QStashBase}/messages");
         var body = await response.Content.ReadAsStringAsync();
 
         if (!response.IsSuccessStatusCode)

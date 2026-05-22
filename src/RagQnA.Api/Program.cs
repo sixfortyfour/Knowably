@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
@@ -16,7 +17,8 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddIngestion();
 
 // Controllers
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
 // Swagger / Scalar
 builder.Services.AddEndpointsApiExplorer();

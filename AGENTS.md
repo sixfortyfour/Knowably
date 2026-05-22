@@ -52,9 +52,10 @@ Upstash      Upstash         Upstash
  status +                     jobs)
  counters)
                 ▲
-         Anthropic API
+           Ollama
          (embeddings +
-          completions)
+          completions,
+          runs locally)
 ```
 
 ### Data Flow Summary
@@ -108,16 +109,17 @@ RagQnA/
 - [ ] Create a free account at https://console.upstash.com
 - [ ] Create a **Redis** database → copy `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`
 - [ ] Create a **Vector** index
-  - Dimensions: `1536` (matches OpenAI `text-embedding-3-small`)
+  - Dimensions: `768` (matches Ollama `nomic-embed-text`)
   - Metric: Cosine
   - Copy `UPSTASH_VECTOR_REST_URL` and `UPSTASH_VECTOR_REST_TOKEN`
 - [ ] Copy `QSTASH_TOKEN` from the QStash section
 - [ ] Copy `QSTASH_CURRENT_SIGNING_KEY` and `QSTASH_NEXT_SIGNING_KEY` for signature verification
 
-> **Embedding provider note:** Anthropic does not offer an embeddings API. This project uses
-> **OpenAI** (`text-embedding-3-small`, 1536 dimensions) for embeddings and **Anthropic**
-> (`claude-sonnet`) for chat completions. If you switch to a different embedding model, update
-> the Vector index dimensions accordingly (e.g. Cohere `embed-english-v3.0` uses 1024).
+> **AI provider note:** This project uses **Ollama** (runs locally, free) for both embeddings
+> and completions. Embedding model: `nomic-embed-text` (768 dimensions). Completion model:
+> `llama3.2`. To switch providers, implement `IEmbeddingClient` / `ICompletionClient` and
+> update the DI registrations in `InfrastructureServiceExtensions`. If you change the embedding
+> model, recreate the Vector index with the matching dimension count.
 
 ### Redis Key Schema
 
@@ -189,21 +191,19 @@ clean typed clients over `HttpClient`. This is a portfolio strength.
   - [x] Support key rotation (current + next signing keys)
 - [x] Register with `IHttpClientFactory`
 
-### 4.4 OpenAI Embedding Client
+### 4.4 Ollama Embedding Client
 
-- [x] Add `OpenAI` NuGet package
-- [x] Implement `IEmbeddingClient` / `OpenAiEmbeddingClient`
-  - [x] `EmbedAsync(string text) → Task<float[]>`
+- [x] Implement `IEmbeddingClient` / `OllamaEmbeddingClient`
+  - [x] `EmbedAsync(string text) → Task<float[]>` — POST `/api/embed`
   - [x] `EmbedBatchAsync(IEnumerable<string> texts) → Task<IEnumerable<float[]>>`
-  - [x] Model: `text-embedding-3-small` (1536 dimensions)
+  - [x] Model: `nomic-embed-text` (768 dimensions)
 - [x] Register with `IHttpClientFactory`
 
-### 4.5 Anthropic Completion Client
+### 4.5 Ollama Completion Client
 
-- [x] Add `Anthropic.SDK` NuGet package
-- [x] Implement `ICompletionClient` / `AnthropicCompletionClient`
-  - [x] `CompleteAsync(string systemPrompt, string userPrompt) → Task<string>`
-  - [x] Model: `claude-sonnet-4-20250514`
+- [x] Implement `ICompletionClient` / `OllamaCompletionClient`
+  - [x] `CompleteAsync(string systemPrompt, string userPrompt) → Task<string>` — POST `/api/chat`
+  - [x] Model: `llama3.2`
 - [x] Register with `IHttpClientFactory`
 
 ### 4.6 Configuration with IOptions&lt;T&gt;
@@ -217,6 +217,7 @@ more testable and idiomatic in modern .NET.
   - [x] `QStashOptions` — `Token`, `CurrentSigningKey`, `NextSigningKey`
   - [x] `OpenAiOptions` — `ApiKey`, `EmbeddingModel`
   - [x] `AnthropicOptions` — `ApiKey`, `CompletionModel`
+  - [x] `OllamaOptions` — `BaseUrl`, `EmbeddingModel`, `CompletionModel`
   - [x] `IngestionOptions` — `ChunkSize`, `ChunkOverlapPercent`, `MaxFileSizeMb`
   - [x] `CacheOptions` — `TtlSeconds`
 - [x] Register each via `services.Configure<T>(configuration.GetSection("..."))` in `AddInfrastructure()`

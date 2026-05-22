@@ -20,6 +20,7 @@ public static class InfrastructureServiceExtensions
         services.Configure<QStashOptions>(configuration.GetSection("QStash"));
         services.Configure<OpenAiOptions>(configuration.GetSection("OpenAi"));
         services.Configure<AnthropicOptions>(configuration.GetSection("Anthropic"));
+        services.Configure<OllamaOptions>(configuration.GetSection("Ollama"));
         services.Configure<IngestionOptions>(configuration.GetSection("Ingestion"));
         services.Configure<CacheOptions>(configuration.GetSection("Cache"));
         services.Configure<MonitorOptions>(configuration.GetSection("Monitor"));
@@ -47,11 +48,11 @@ public static class InfrastructureServiceExtensions
         // QStash
         services.AddHttpClient<IQStashClient, QStashClient>("QStash");
 
-        // OpenAI Embeddings
-        services.AddSingleton<IEmbeddingClient, OpenAiEmbeddingClient>();
+        // Ollama Embeddings
+        services.AddHttpClient<IEmbeddingClient, OllamaEmbeddingClient>("OllamaEmbedding");
 
-        // Anthropic Completions
-        services.AddSingleton<ICompletionClient, AnthropicCompletionClient>();
+        // Ollama Completions
+        services.AddHttpClient<ICompletionClient, OllamaCompletionClient>("OllamaCompletion");
 
         // QStash signature verifier
         services.AddSingleton<QStashSignatureVerifier>();
