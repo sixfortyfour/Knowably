@@ -52,8 +52,9 @@ public static class InfrastructureServiceExtensions
         services.AddHttpClient<IEmbeddingClient, OllamaEmbeddingClient>("OllamaEmbedding")
             .ConfigureHttpClient(client => client.Timeout = TimeSpan.FromMinutes(10));
 
-        // Ollama Completions
-        services.AddHttpClient<ICompletionClient, OllamaCompletionClient>("OllamaCompletion");
+        // Ollama Completions — long timeout: local LLM inference can take several minutes
+        services.AddHttpClient<ICompletionClient, OllamaCompletionClient>("OllamaCompletion")
+            .ConfigureHttpClient(client => client.Timeout = TimeSpan.FromMinutes(10));
 
         // QStash signature verifier
         services.AddSingleton<QStashSignatureVerifier>();
